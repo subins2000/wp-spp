@@ -1,9 +1,9 @@
 <?
 /**
  * Plugin Name: StatCounter Popular Posts
- * Plugin URI: http://subinsb.com/ask/popular-posts
+ * Plugin URI: http://subinsb.com/ask/statcounter-popular-posts
  * Description: Display Popular Posts from StatCounter
- * Version: 0.1
+ * Version: 0.1.1
  * Author: Subin Siby
  * Author URI: http://subinsb.com
  * License: GPLv3
@@ -16,6 +16,9 @@ function SCPP_optPage(){
  	}
  	$SPPid = get_option("SPPproject")=="" ? "" : get_option("SPPproject");
 ?>
+	<div id="message" class="update-nag">
+   	Read more about this plugin <a href="http://subinsb.com/wp-statcounter-popular-posts-plugin">here</a>.
+   </div>
 	<h1>SC Popular Posts Options</h1>
 	<p>You only have to enter the project ID of your StatCounter Project</p>
 	<form action="" method="POST">
@@ -26,6 +29,9 @@ function SCPP_optPage(){
 	<p>If the summary page URL of your project looks like this :</p>
 	<blockquote>http://statcounter.com/p1234567/summary/</blockquote>
 	<p>Then <b>p1234567</b> is your Project ID.</p>
+	<h2>Donate</h2>
+	<p>Please donate if you liked this plugin</p>
+	<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick"><input type="hidden" name="hosted_button_id" value="ZYQWUZ2B8ZXXA"><button name="submit" type="submit"><img alt="Donate" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></button><br><img alt="Donate" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1" border="0"></form>
 <?
 }
 
@@ -63,7 +69,7 @@ class SPP extends WP_Widget {
 	public function widget( $args, $instance ) {
 		echo $args['before_widget'];
 		$instance['type']  = isset($instance['type']) ? $instance['type']   : "";
-		$instance['items'] = isset($instance['items']) ? $instance['items']+1 : 10+1;
+		$instance['items'] = isset($instance['items']) ? $instance['items'] - 1 : 10 - 1;
 		
 		echo $args['before_title'] . "Popular Posts" . $args['after_title'];
 		
@@ -118,7 +124,7 @@ class SPP extends WP_Widget {
 		$output = "";
 		
 		/* The Site URL */
-		$siteURL		  = "http://subinsb.com/"; // get_home_url()
+		$siteURL		  = get_home_url(); // get_home_url()
 		$siteURLParts = parse_url($siteURL);
  		$siteURL		  = $siteURLParts['host'].$siteURLParts['path'];
 		
@@ -136,12 +142,13 @@ class SPP extends WP_Widget {
  				$current_url = $current_url['host'].$current_url['path'];
  				
   				$slug		 	 = str_replace($siteURL, "", $current_url);
+  				$slugLast	= preg_match("/\//", $slug) ? explode("/", $slug)[0] : substr($slug, 1);
   				
   				/* Avoid Display of Home Page */
   				if($slug!=""){
 					$sqlstr = $wpdb->prepare("SELECT wposts.ID, wposts.guid
     					FROM $wpdb->posts wposts
-   					WHERE wposts.post_name LIKE %s", "%$slug%"
+   					WHERE wposts.post_name LIKE %s OR wposts.post_name LIKE $slugLast", "%$slug%"
    				);
    				$results = $wpdb->get_results($sqlstr, ARRAY_N);
    				if(isset($results[0][0])){
